@@ -9,10 +9,10 @@
 
 ### Cargo
 
-* Install the rust toolchain in order to have cargo installed by following
-  [this](https://www.rust-lang.org/tools/install) guide.
-* run `cargo install downloader`
+Add the following line into your `Cargo.toml` file to make `downloader` a `[dependency]`
+of your crate:
 
+`downloader = "<VERSION>"`
 ## License
 
 Licensed under the GNU Lesser General Public License, Version 3.0 or later

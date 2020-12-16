@@ -10,3 +10,8 @@ keywords = [ "http", "https", "download" ]
 categories = [ "web-programming::http-client" ]
 
 [dependencies]
+futures = { version = "0.3" }
+reqwest = { version = "0.10" }
+rand = { version = "0.8" }
+thiserror = { version = "1.0" }
+tokio = { version = "0.2", features = [ "full" ] }
