@@ -16,7 +16,7 @@
 ## License
 
 Licensed under the GNU Lesser General Public License, Version 3.0 or later
-([LICENSE-LGPLv3](LICENSE-LGPLv3.md) or https://www.gnu.org/licenses/lgpl.md
+([LICENSE-LGPLv3](LICENSE-LGPLv3.md) or <https://www.gnu.org/licenses/lgpl.md>
 
 ## Contribution
 
