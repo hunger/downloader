@@ -8,7 +8,7 @@ use crate::{Download, DownloadResult};
 use futures::stream::{self, StreamExt};
 use rand::seq::SliceRandom;
 
-use std::io::Write;
+use std::io::{Seek, SeekFrom, Write};
 
 fn select_url(urls: &[String]) -> String {
     assert!(!urls.is_empty());
@@ -25,6 +25,7 @@ async fn download_url(
     if let Ok(mut response) = client.get(&url).send().await {
         let total = response.content_length();
         let mut current: u64 = 0;
+        writer.seek(SeekFrom::Start(current)).unwrap_or(0);
 
         progress.setup(total, message);
 
@@ -75,7 +76,11 @@ async fn download(client: reqwest::Client, mut download: Download, retries: u16)
     let mut progress = download.progress.expect("This has been set!").clone();
     let mut message = String::new();
 
-    if let Ok(file) = std::fs::File::create(&file_name) {
+    if let Ok(file) = std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&file_name)
+    {
         let mut writer = std::io::BufWriter::new(file);
 
         for retry in 1..=retries {
