@@ -1,7 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) 2020 Tobias Hunger <tobias.hunger@gmail.com>
 
-//! A simple way to download files via HTTP/HTTPS
+//! This crate provides a simple way to download files via HTTP/HTTPS.
+//!
+//! It tries to make it very simple to just specify a couple of
+//! URLs and then go and download all of the files.
+//!
+//! It supports system proxy configuration, parallel downloads of different files,
+//! validation of downloads via a callback, as well as files being mirrored on
+//! different machines.
+//!
+//! Callbacks to provide progress information are supported as well.
 
 // Setup warnings/errors:
 #![forbid(unsafe_code)]
@@ -28,7 +37,7 @@ pub use downloader::Downloader;
 // - Error:
 // ----------------------------------------------------------------------
 
-/// An `Error` Enum
+/// Possible `Error`s that can occurred during normal operation.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// The Setup is incomplete or bogus.
@@ -48,16 +57,16 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// The result of a `Download`
 pub struct DownloadResult {
-    /// The actual URL that this file has been downloaded from
+    /// A list of attempted downloads with URL and status code.
     pub status: Vec<(String, u16)>,
     /// The path this URL has been downloaded to.
     pub file_name: std::path::PathBuf,
-    /// Verification was a success?
+    /// Verification was successful?
     pub verified: bool,
 }
 
 impl DownloadResult {
-    /// Returns whether this was a successful download or not.
+    /// Returns whether this the downloaded file is ready for use.
     #[must_use]
     pub fn was_success(&self) -> bool {
         self.status.last().unwrap_or(&(String::from(""), 0)).1 == 200 && self.verified

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) 2020 Tobias Hunger <tobias.hunger@gmail.com>
 
-//! The `Downloader` struct
+//! The `Downloader` that holds all the logic to manage the `Downloads`
 
 use crate::{Download, DownloadResult, Error, Result};
 
@@ -80,7 +80,8 @@ fn validate_downloads(
 // - Downloader:
 // ----------------------------------------------------------------------
 
-/// The main entry point
+/// This is the main entry point: You need to have a `Downloader` and then can call
+/// `download` on that, passing in a list of `Download` objects.
 pub struct Downloader {
     client: reqwest::Client,
     parallel_requests: u16,
@@ -89,7 +90,7 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    /// Create a `Builder` for `Downloader`
+    /// Create a `Builder` for `Downloader` to allow for fine-grained configuration.
     #[must_use]
     pub fn builder() -> Builder {
         let download_folder =
@@ -115,7 +116,7 @@ impl Downloader {
     /// Start the download
     ///
     /// # Errors
-    /// `Error::Setup` if the download is detected to be broken in some way.
+    /// `Error::DownloadDefinition` if the download is detected to be broken in some way.
     pub fn download(&mut self, downloads: &[Download]) -> Result<Vec<DownloadResult>> {
         #[cfg(feature = "tui")]
         let factory = crate::progress::Tui::default();
@@ -143,7 +144,7 @@ impl Downloader {
 // - Builder:
 // ----------------------------------------------------------------------
 
-/// A builder for `Downloader`
+/// A builder for a `Downloader`
 pub struct Builder {
     user_agent: String,
     connect_timeout: std::time::Duration,
@@ -205,7 +206,7 @@ impl Builder {
     /// Build a downloader.
     ///
     /// # Errors
-    /// * `Error::Setup`, when `reqwest::Client` setup fails
+    /// * `Error::Setup`, when setup fails
     pub fn build(&mut self) -> crate::Result<Downloader> {
         let builder = reqwest::Client::builder()
             .user_agent(self.user_agent.clone())
