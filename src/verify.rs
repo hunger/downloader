@@ -4,6 +4,17 @@
 //! Verification callbacks
 
 // ----------------------------------------------------------------------
+// - Types:
+// ----------------------------------------------------------------------
+
+/// A simplified progress callback passed to `Verify`. It only takes a progress
+/// value, which is relative to the file length in bytes.
+pub type SimpleProgress = dyn Fn(u64) + Sync;
+
+/// A callback to used to verify the download.
+pub type Verify = std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgress) -> bool + Send + Sync>;
+
+// ----------------------------------------------------------------------
 // - Noop:
 // ----------------------------------------------------------------------
 

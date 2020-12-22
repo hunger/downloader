@@ -8,27 +8,17 @@
 // - Download:
 // ----------------------------------------------------------------------
 
-/// A Progress reporter to use for the `Download`
-pub type Progress = std::sync::Arc<dyn crate::progress::Reporter>;
-
-/// A simplified progress callback passed to `Verify`. It only takes a progress
-/// value, which is relative to the file length in bytes.
-pub type SimpleProgress = dyn Fn(u64) + Sync;
-
-/// A callback to used to verify the download.
-pub type Verify = std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgress) -> bool + Send + Sync>;
-
 /// A `Download`.
 pub struct Download {
     /// A list of URLs that this file can be retrieved from. `downloader` will pick
     /// the download URL from this list at random.
     pub urls: Vec<String>,
     /// A progress `Reporter` to report the download process with.
-    pub progress: Option<Progress>,
+    pub progress: Option<crate::Progress>,
     /// The file name to be used for the downloaded file.
     pub file_name: std::path::PathBuf,
     /// A callback used to verify the download with.
-    pub verify_callback: Verify,
+    pub verify_callback: crate::Verify,
 }
 
 fn file_name_from_url(url: &str) -> std::path::PathBuf {
@@ -87,7 +77,7 @@ impl Download {
     ///
     /// Defaults to not printing any progress information.
     #[must_use]
-    pub fn progress(mut self, progress: Progress) -> Self {
+    pub fn progress(mut self, progress: crate::Progress) -> Self {
         self.progress = Some(progress);
         self
     }
@@ -96,7 +86,7 @@ impl Download {
     ///
     /// Default is to assume the file was downloaded correctly.
     #[must_use]
-    pub fn verify(mut self, func: Verify) -> Self {
+    pub fn verify(mut self, func: crate::Verify) -> Self {
         self.verify_callback = func;
         self
     }
