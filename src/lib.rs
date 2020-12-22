@@ -47,11 +47,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 type Progress = std::sync::Arc<dyn crate::progress::Reporter>;
 
 /// A simple progress callback passed to `VerifyCallback`
-type SimpleProgressCallback = dyn Fn(u64) + Sync;
+type SimpleProgress = dyn Fn(u64) + Sync;
 
 /// A callback to used to verify the download.
-type Verify =
-    std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgressCallback) -> bool + Send + Sync>;
+type Verify = std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgress) -> bool + Send + Sync>;
 
 /// A `Download` to be run.
 pub struct Download {
