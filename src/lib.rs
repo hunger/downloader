@@ -33,7 +33,7 @@ pub mod verify;
 pub use download::Download;
 pub use downloader::Downloader;
 pub use progress::Progress;
-pub use verify::{SimpleProgress, Verify};
+pub use verify::{SimpleProgress, Verification, Verify};
 
 // ----------------------------------------------------------------------
 // - Error:
@@ -45,44 +45,68 @@ pub enum Error {
     /// The Setup is incomplete or bogus.
     #[error("Setup error: {0}")]
     Setup(String),
-    /// A Definition of a Download is incomplete
+    /// A Definition of a `Download` is incomplete
     #[error("Download definition: {0}")]
     DownloadDefinition(String),
+    /// Writing into a file failed during download.
+    #[error("File creation failed: {0}")]
+    File(DownloadSummary),
+    /// A download failed
+    #[error("Download failed for {0}")]
+    Download(DownloadSummary),
+    /// Download file verification failed.
+    #[error("Verification failed for {0}")]
+    Verification(DownloadSummary),
 }
 
 /// `Result` type for the `gng_shared` library
 pub type Result<T> = std::result::Result<T, Error>;
 
 // ----------------------------------------------------------------------
-// - DownloadResult:
+// - DownloadSummary:
 // ----------------------------------------------------------------------
 
 /// The result of a `Download`
-pub struct DownloadResult {
+pub struct DownloadSummary {
     /// A list of attempted downloads with URL and status code.
     pub status: Vec<(String, u16)>,
     /// The path this URL has been downloaded to.
     pub file_name: std::path::PathBuf,
-    /// Verification was successful?
-    pub verified: bool,
+    /// File verification status
+    pub verified: Verification,
 }
 
-impl DownloadResult {
-    /// Returns whether this the downloaded file is ready for use.
-    #[must_use]
-    pub fn was_success(&self) -> bool {
-        self.status.last().unwrap_or(&(String::from(""), 0)).1 == 200 && self.verified
+fn to_fmt(f: &mut std::fmt::Formatter<'_>, summary: &DownloadSummary) -> std::fmt::Result {
+    writeln!(
+        f,
+        "{}: (verification: {}):",
+        summary.file_name.to_string_lossy(),
+        match summary.verified {
+            Verification::NotVerified => "unverified",
+            Verification::Failed => "FAILED",
+            Verification::Ok => "Ok",
+        },
+    )?;
+    for i in 0..summary.status.len() {
+        writeln!(
+            f,
+            "  {}: {} with status {}",
+            i + 1,
+            summary.status[i].0,
+            summary.status[i].1
+        )?;
     }
+    Ok(())
+}
 
-    /// Returns whether this the file has been downloaded successfully.
-    #[must_use]
-    pub fn was_downloaded(&self) -> bool {
-        self.status.last().unwrap_or(&(String::from(""), 0)).1 == 200
+impl std::fmt::Display for DownloadSummary {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        to_fmt(f, self)
     }
+}
 
-    /// Returns whether this verification was a success.
-    #[must_use]
-    pub const fn was_verified(&self) -> bool {
-        self.verified
+impl std::fmt::Debug for DownloadSummary {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        to_fmt(f, self)
     }
 }
