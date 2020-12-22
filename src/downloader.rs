@@ -39,6 +39,12 @@ fn validate_downloads(
 
         let urls = d.urls.clone();
 
+        if d.file_name.to_string_lossy().is_empty() {
+            return Err(Error::DownloadDefinition(String::from(
+                "No download file name was provided.",
+            )));
+        }
+
         let file_name = download_folder.join(&d.file_name);
         if d.file_name.to_string_lossy().is_empty() {
             return Err(Error::DownloadDefinition(String::from(
