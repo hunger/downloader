@@ -62,3 +62,96 @@ impl Factory for Noop {
 
     fn join(&self) {}
 }
+
+// ----------------------------------------------------------------------
+// - TUI:
+// ----------------------------------------------------------------------
+
+#[cfg(feature = "tui")]
+mod tui {
+    /// Manage multiple progress reporters combined into one set of progress bars
+    pub struct Tui {
+        progress_group: indicatif::MultiProgress,
+    }
+
+    impl Default for Tui {
+        fn default() -> Self {
+            Self {
+                progress_group: indicatif::MultiProgress::with_draw_target(
+                    indicatif::ProgressDrawTarget::stderr_with_hz(4),
+                ),
+            }
+        }
+    }
+
+    impl super::Factory for Tui {
+        /// Create a `Reporter` connected to this set of UI primitives.
+        fn create_reporter(&self) -> crate::Progress {
+            std::sync::Arc::new(TuiBar {
+                progress_bar: std::sync::Mutex::new(
+                    self.progress_group.add(indicatif::ProgressBar::new(1)),
+                ),
+            })
+        }
+
+        /// Wait for all progresses to finish
+        fn join(&self) {
+            self.progress_group
+                .join()
+                .expect("No ui if this fails, which is OK for us");
+        }
+    }
+
+    struct TuiBar {
+        progress_bar: std::sync::Mutex<indicatif::ProgressBar>,
+    }
+
+    impl super::Reporter for TuiBar {
+        fn setup(&self, max_progress: Option<u64>, message: &str) {
+            let lock = self.progress_bar.lock().unwrap();
+            if let Some(t) = max_progress {
+                lock.set_length(t);
+                lock.set_style(indicatif::ProgressStyle::default_bar()
+                .template("[{bar:20.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta}) - {msg}")
+                .progress_chars("#- "));
+                lock.set_message(message);
+                lock.reset_eta();
+            } else {
+                lock.set_style(
+                    indicatif::ProgressStyle::default_spinner()
+                        // For more spinners check out the cli-spinners project:
+                        // https://github.com/sindresorhus/cli-spinners/blob/master/spinners.json
+                        .tick_strings(&[
+                            "▹▹▹▹▹",
+                            "▸▹▹▹▹",
+                            "▹▸▹▹▹",
+                            "▹▹▸▹▹",
+                            "▹▹▹▸▹",
+                            "▹▹▹▹▸",
+                            "▪▪▪▪▪",
+                        ])
+                        .template("{spinner:.blue} {msg}"),
+                );
+                lock.set_message(message)
+            };
+        }
+
+        fn progress(&self, current: u64) {
+            let lock = self.progress_bar.lock().unwrap();
+            lock.set_position(current);
+        }
+
+        fn set_message(&self, message: &str) {
+            let lock = self.progress_bar.lock().unwrap();
+            lock.set_message(message);
+        }
+
+        fn done(&self) {
+            let lock = self.progress_bar.lock().unwrap();
+            lock.finish();
+        }
+    }
+}
+
+#[cfg(feature = "tui")]
+pub use tui::Tui;

@@ -185,6 +185,9 @@ impl Downloader {
         let mut known_urls = std::collections::HashSet::new();
         let mut known_download_paths = std::collections::HashSet::new();
 
+        #[cfg(feature = "tui")]
+        let factory = progress::Tui::default();
+        #[cfg(not(feature = "tui"))]
         let factory = progress::Noop::default();
 
         for d in &mut to_process {
