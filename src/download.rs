@@ -16,29 +16,28 @@ fn select_url(urls: &[String]) -> String {
 }
 
 async fn download_url(
-    client: &reqwest::Client,
-    url: &str,
+    client: reqwest::Client,
+    url: String,
     writer: &mut std::io::BufWriter<std::fs::File>,
-    callback: &crate::ProgressCallback,
-    retry: u16,
-    retries: u16,
+    progress: &mut crate::Progress,
+    message: &str,
 ) -> u16 {
-    if let Ok(mut response) = client.get(url).send().await {
+    if let Ok(mut response) = client.get(&url).send().await {
         let total = response.content_length();
         let mut current: u64 = 0;
 
-        callback(retry, retries, current, total); // Start progress reporting with 0
+        progress.setup(total, message);
 
         while let Some(bytes) = response.chunk().await.unwrap_or(None) {
             if writer.write_all(&bytes).is_err() {}
 
             current += bytes.len() as u64;
-            callback(retry, retries, current, total);
+            progress.progress(current);
         }
 
-        callback(retry, retries, current, total);
-
-        response.status().as_u16()
+        let result = response.status().as_u16();
+        progress.set_message(&format!("{} - {}", message, result));
+        result
     } else {
         reqwest::StatusCode::BAD_REQUEST.as_u16()
     }
@@ -51,6 +50,8 @@ async fn download(client: reqwest::Client, download: Download, retries: u16) -> 
     assert!(!urls.is_empty());
 
     let file_name = download.file_name;
+    let mut progress = download.progress.expect("This has been set!").clone();
+    let mut message;
 
     if let Ok(file) = std::fs::File::create(&file_name) {
         let mut writer = std::io::BufWriter::new(file);
@@ -58,14 +59,23 @@ async fn download(client: reqwest::Client, download: Download, retries: u16) -> 
         for retry in 1..=retries {
             let url = select_url(&urls);
 
+            message = format!(
+                "{} {}/{}",
+                file_name
+                    .file_name()
+                    .unwrap_or_else(|| std::ffi::OsStr::new("<unknown>"))
+                    .to_string_lossy(),
+                retry,
+                retries,
+            );
+
             let s = reqwest::StatusCode::from_u16(
                 download_url(
-                    &client,
-                    &url,
+                    client.clone(),
+                    url.clone(),
                     &mut writer,
-                    &download.callback,
-                    retry,
-                    retries,
+                    &mut progress,
+                    &message,
                 )
                 .await,
             )
@@ -98,6 +108,7 @@ pub(crate) fn run(
     downloads: Vec<Download>,
     retries: u16,
     parallel_requests: u16,
+    spin: &dyn Fn(),
 ) -> Vec<DownloadResult> {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     let cl = client.clone();
@@ -109,6 +120,8 @@ pub(crate) fn run(
             .collect::<Vec<DownloadResult>>()
             .await
     });
+
+    spin();
 
     rt.block_on(result).unwrap()
 }

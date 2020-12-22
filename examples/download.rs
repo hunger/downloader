@@ -10,6 +10,60 @@
 
 use downloader::Downloader;
 
+// Define a custom progress reporter:
+struct SimpleReporterPrivate {
+    last_update: std::time::Instant,
+    max_progress: Option<u64>,
+    message: String,
+}
+struct SimpleReporter {
+    private: std::sync::Mutex<Option<SimpleReporterPrivate>>,
+}
+
+impl SimpleReporter {
+    #[cfg(not(feature = "tui"))]
+    fn create() -> std::sync::Arc<Self> {
+        std::sync::Arc::new(Self {
+            private: std::sync::Mutex::new(None),
+        })
+    }
+}
+
+impl downloader::progress::Reporter for SimpleReporter {
+    fn setup(&self, max_progress: Option<u64>, message: &str) {
+        let private = SimpleReporterPrivate {
+            last_update: std::time::Instant::now(),
+            max_progress,
+            message: message.to_owned(),
+        };
+
+        let mut guard = self.private.lock().unwrap();
+        *guard = Some(private);
+    }
+
+    fn progress(&self, current: u64) {
+        if let Some(p) = self.private.lock().unwrap().as_mut() {
+            if p.last_update.elapsed().as_millis() >= 1000 {
+                println!(
+                    "debian: {} of {:?}bytes. [{}]",
+                    current, p.max_progress, p.message
+                );
+                p.last_update = std::time::Instant::now();
+            }
+        }
+    }
+
+    fn set_message(&self, message: &str) {
+        println!("debian: Message changed to: {}", message);
+    }
+
+    fn done(&self) {
+        let mut guard = self.private.lock().unwrap();
+        *guard = None;
+        println!("debian: [DONE]");
+    }
+}
+
 fn main() {
     let mut downloader = Downloader::builder()
         .download_folder(std::path::Path::new("/tmp"))
@@ -20,16 +74,12 @@ fn main() {
     downloader.queue(downloader::Download::new(
         "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.7.0-amd64-netinst.iso",
     )
-    .callback(Box::new(|r: u16, rm: u16, b: u64, bm: Option<u64>| {
-        println!("debian: {}/{} retries, {} of {:?}bytes.", r, rm, b, bm)
-    })));
+    .progress(SimpleReporter::create()));
 
     downloader.queue(downloader::Download::new(
         "https://download.fedoraproject.org/pub/fedora/linux/releases/33/Server/x86_64/iso/Fedora-Server-netinst-x86_64-33-1.2.iso",
     )
-    .callback(Box::new(|r: u16, rm: u16, b: u64, bm: Option<u64>| {
-        println!("fedora: {}/{} retries, {} of {:?}bytes.", r, rm, b, bm)
-    })));
+    .progress(SimpleReporter::create()));
 
     let result = downloader.download().unwrap();
 
