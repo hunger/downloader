@@ -16,6 +16,9 @@
 #![allow(clippy::non_ascii_literal)]
 
 pub mod download;
+pub mod progress;
+
+use crate::progress::Factory;
 
 // ----------------------------------------------------------------------
 // - Error:
@@ -39,20 +42,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 // - Download:
 // ----------------------------------------------------------------------
 
-/// A callback to report download progress. The inputs are the current
-/// retry count, the maximum retry count, the downloaded size in bytes
-/// and the total file size in bytes.
-type ProgressCallback = Box<dyn Fn(u16, u16, u64, Option<u64>) + Send + Sync>;
+/// A Progress reporter
+type Progress = std::sync::Arc<dyn crate::progress::Reporter>;
 
 /// A `Download` to be run.
 pub struct Download {
     urls: Vec<String>,
-    callback: ProgressCallback,
+    progress: Option<Progress>,
     file_name: std::path::PathBuf,
-}
-
-fn noop_callback() -> ProgressCallback {
-    Box::new(|_: u16, _: u16, _: u64, _: Option<u64>| {})
 }
 
 fn file_name_from_url(url: &str) -> std::path::PathBuf {
@@ -77,7 +74,7 @@ impl Download {
     pub fn new(url: &str) -> Self {
         Self {
             urls: vec![url.to_owned()],
-            callback: noop_callback(),
+            progress: None,
             file_name: file_name_from_url(url),
         }
     }
@@ -94,7 +91,7 @@ impl Download {
 
         Self {
             urls,
-            callback: noop_callback(),
+            progress: None,
             file_name: file_name_from_url(&url),
         }
     }
@@ -106,10 +103,12 @@ impl Download {
         self
     }
 
-    /// Register a callback to provide progress information
+    /// Register handling of progress information
+    ///
+    /// Defaults to not printing any progress infromation.
     #[must_use]
-    pub fn callback(mut self, func: ProgressCallback) -> Self {
-        self.callback = func;
+    pub fn progress(mut self, progress: Progress) -> Self {
+        self.progress = Some(progress);
         self
     }
 }
@@ -186,6 +185,8 @@ impl Downloader {
         let mut known_urls = std::collections::HashSet::new();
         let mut known_download_paths = std::collections::HashSet::new();
 
+        let factory = progress::Noop::default();
+
         for d in &mut to_process {
             if d.urls.is_empty() {
                 return Err(Error::Setup(String::from("No URL found to download.")));
@@ -213,6 +214,10 @@ impl Downloader {
                     d.file_name.to_string_lossy(),
                 )));
             }
+
+            if d.progress.is_none() {
+                d.progress = Some(factory.create_reporter());
+            }
         }
 
         Ok(download::run(
@@ -220,12 +225,15 @@ impl Downloader {
             to_process,
             self.retries,
             self.parallel_requests,
+            &move || {
+                factory.join();
+            },
         ))
     }
 }
 
 // ----------------------------------------------------------------------
-// - DownloadBuilder:
+// - DownloaderBuilder:
 // ----------------------------------------------------------------------
 
 /// A builder for `Downloader`
