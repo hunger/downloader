@@ -15,7 +15,7 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic)]
 #![allow(clippy::non_ascii_literal)]
 
-pub mod download;
+pub mod backend;
 pub mod progress;
 pub mod verify;
 
@@ -259,7 +259,7 @@ impl Downloader {
             }
         }
 
-        Ok(download::run(
+        Ok(backend::run(
             &mut self.client,
             to_process,
             self.retries,
