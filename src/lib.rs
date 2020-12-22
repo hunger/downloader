@@ -17,6 +17,7 @@
 
 pub mod download;
 pub mod progress;
+pub mod verify;
 
 use crate::progress::Factory;
 
@@ -45,11 +46,19 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// A Progress reporter
 type Progress = std::sync::Arc<dyn crate::progress::Reporter>;
 
+/// A simple progress callback passed to `VerifyCallback`
+type SimpleProgressCallback = dyn Fn(u64) + Sync;
+
+/// A callback to used to verify the download.
+type Verify =
+    std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgressCallback) -> bool + Send + Sync>;
+
 /// A `Download` to be run.
 pub struct Download {
     urls: Vec<String>,
     progress: Option<Progress>,
     file_name: std::path::PathBuf,
+    verify_callback: Verify,
 }
 
 fn file_name_from_url(url: &str) -> std::path::PathBuf {
@@ -76,6 +85,7 @@ impl Download {
             urls: vec![url.to_owned()],
             progress: None,
             file_name: file_name_from_url(url),
+            verify_callback: crate::verify::noop(),
         }
     }
 
@@ -93,6 +103,7 @@ impl Download {
             urls,
             progress: None,
             file_name: file_name_from_url(&url),
+            verify_callback: crate::verify::noop(),
         }
     }
 
@@ -111,6 +122,13 @@ impl Download {
         self.progress = Some(progress);
         self
     }
+
+    /// Register a callback to verify a download
+    #[must_use]
+    pub fn verify(mut self, func: Verify) -> Self {
+        self.verify_callback = func;
+        self
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -123,13 +141,27 @@ pub struct DownloadResult {
     pub status: Vec<(String, u16)>,
     /// The path this URL has been downloaded to.
     pub file_name: std::path::PathBuf,
+    /// Verification was a success?
+    pub verified: bool,
 }
 
 impl DownloadResult {
     /// Returns whether this was a successful download or not.
     #[must_use]
-    pub fn is_success(&self) -> bool {
+    pub fn was_success(&self) -> bool {
+        self.status.last().unwrap_or(&(String::from(""), 0)).1 == 200 && self.verified
+    }
+
+    /// Returns whether this the file has been downloaded successfully.
+    #[must_use]
+    pub fn was_downloaded(&self) -> bool {
         self.status.last().unwrap_or(&(String::from(""), 0)).1 == 200
+    }
+
+    /// Returns whether this verification was a success.
+    #[must_use]
+    pub const fn was_verified(&self) -> bool {
+        self.verified
     }
 }
 

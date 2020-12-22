@@ -12,6 +12,7 @@ categories = [ "web-programming::http-client" ]
 [features]
 default = []
 tui = [ "indicatif" ]
+verify = [ "sha3" ]
 
 [dependencies]
 futures = { version = "0.3" }
@@ -22,3 +23,4 @@ thiserror = { version = "1.0" }
 tokio = { version = "0.2", features = [ "time", "rt-threaded" ] }
 
 indicatif = { version = "0.15", optional = true }
+sha3 = { version = "0.9", optional = true }

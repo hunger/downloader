@@ -10,7 +10,8 @@ from the internet. It tries to make it very simple to just specify a couple of
 URLs and then go and download all of the files.
 
 It supports system proxy configuration, parallel downloads of different files,
-as well as files being mirrored on different machines.
+validation of downloads via a callback, as well as files being mirrored on
+different machines.
 
 Callbacks to provide progress information are supported as well.
 
@@ -26,6 +27,7 @@ of your crate:
 #### Features
 
 * `tui` feature uses `indicatif` crate to provide a text ui for downloads
+* `verify` feature enables (optional) verification of downloads using sha3 hashes
 
 ## License
 
