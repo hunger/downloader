@@ -108,6 +108,8 @@ impl Download {
     }
 
     /// Register a callback to provide progress information
+    ///
+    /// Default is the file name on the server side (if available)
     #[must_use]
     pub fn file_name(mut self, path: &std::path::Path) -> Self {
         self.file_name = path.to_owned();
@@ -124,6 +126,8 @@ impl Download {
     }
 
     /// Register a callback to verify a download
+    ///
+    /// Default is to assume the file was downloaded correctly.
     #[must_use]
     pub fn verify(mut self, func: Verify) -> Self {
         self.verify_callback = func;
