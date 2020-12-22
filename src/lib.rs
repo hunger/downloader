@@ -30,8 +30,10 @@ pub mod downloader;
 pub mod progress;
 pub mod verify;
 
-pub use download::{Download, Progress, SimpleProgress, Verify};
+pub use download::Download;
 pub use downloader::Downloader;
+pub use progress::Progress;
+pub use verify::{SimpleProgress, Verify};
 
 // ----------------------------------------------------------------------
 // - Error:
