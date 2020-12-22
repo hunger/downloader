@@ -10,7 +10,7 @@
 /// Do nothing to verify the download
 #[must_use]
 pub fn noop() -> crate::Verify {
-    std::sync::Arc::new(|_: std::path::PathBuf, _: &crate::SimpleProgressCallback| true)
+    std::sync::Arc::new(|_: std::path::PathBuf, _: &crate::SimpleProgress| true)
 }
 
 // ----------------------------------------------------------------------
@@ -25,7 +25,7 @@ pub fn sha3_256(hash: Vec<u8>) -> crate::Verify {
     use std::io::Read;
 
     std::sync::Arc::new(
-        move |path: std::path::PathBuf, cb: &crate::SimpleProgressCallback| {
+        move |path: std::path::PathBuf, cb: &crate::SimpleProgress| {
             let mut hasher = sha3::Sha3_256::new();
 
             if let Ok(file) = std::fs::OpenOptions::new().read(true).open(&path) {
