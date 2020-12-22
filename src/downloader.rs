@@ -220,7 +220,9 @@ impl Builder {
         }
 
         Ok(Downloader {
-            client: builder.build()?,
+            client: builder.build().map_err(|e| {
+                Error::Setup(format!("Failed to set up backend: {}", e.to_string()))
+            })?,
             parallel_requests: self.parallel_requests,
             retries: self.retries,
             download_folder: download_folder.to_owned(),

@@ -37,9 +37,6 @@ pub enum Error {
     /// A Definition of a Download is incomplete
     #[error("Download definition: {0}")]
     DownloadDefinition(String),
-    /// The backend crate reported some issue.
-    #[error("Backend error: {0}")]
-    Backend(#[from] reqwest::Error),
 }
 
 /// `Result` type for the `gng_shared` library

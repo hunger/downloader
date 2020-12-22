@@ -58,13 +58,9 @@ impl Download {
 
     /// Create a new `Download` based on a list of mirrors
     #[must_use]
-    pub fn new_mirrored(urls: Vec<&str>) -> Self {
-        let empty = String::new();
-        let urls: Vec<String> = urls
-            .into_iter()
-            .map(std::borrow::ToOwned::to_owned)
-            .collect();
-        let url = urls.get(0).unwrap_or(&empty).clone();
+    pub fn new_mirrored(urls: &[&str]) -> Self {
+        let urls: Vec<String> = urls.iter().map(|s| String::from(*s)).collect();
+        let url = urls.get(0).unwrap_or(&String::new()).clone();
 
         Self {
             urls,
