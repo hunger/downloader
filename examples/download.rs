@@ -85,9 +85,7 @@ fn main() {
         0x73, 0xf9,
     ]));
 
-    downloader.queue(dl);
-
-    let result = downloader.download().unwrap();
+    let result = downloader.download(&[dl]).unwrap();
 
     for r in result {
         println!(
