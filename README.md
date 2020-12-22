@@ -9,9 +9,10 @@
 from the internet. It tries to make it very simple to just specify a couple of
 URLs and then go and download all of the files.
 
-It supports system proxy configuration, parallel downloads of different files, as
-well as having files mirrored on different machines. Callbacks to provide progress
-information are supported as well.
+It supports system proxy configuration, parallel downloads of different files,
+as well as files being mirrored on different machines.
+
+Callbacks to provide progress information are supported as well.
 
 ## Installation
 
@@ -21,6 +22,11 @@ Add the following line into your `Cargo.toml` file to make `downloader` a `[depe
 of your crate:
 
 `downloader = "<VERSION>"`
+
+#### Features
+
+* `tui` feature uses `indicatif` crate to provide a text ui for downloads
+
 ## License
 
 Licensed under the GNU Lesser General Public License, Version 3.0 or later

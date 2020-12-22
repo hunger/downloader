@@ -71,15 +71,14 @@ fn main() {
         .build()
         .unwrap();
 
-    downloader.queue(downloader::Download::new(
+    let dl = downloader::Download::new(
         "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.7.0-amd64-netinst.iso",
-    )
-    .progress(SimpleReporter::create()));
+    );
 
-    downloader.queue(downloader::Download::new(
-        "https://download.fedoraproject.org/pub/fedora/linux/releases/33/Server/x86_64/iso/Fedora-Server-netinst-x86_64-33-1.2.iso",
-    )
-    .progress(SimpleReporter::create()));
+    #[cfg(not(feature = "tui"))]
+    let dl = dl.progress(SimpleReporter::create());
+
+    downloader.queue(dl);
 
     let result = downloader.download().unwrap();
 
