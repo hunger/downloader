@@ -78,16 +78,33 @@ fn main() {
     #[cfg(not(feature = "tui"))]
     let dl = dl.progress(SimpleReporter::create());
 
+    #[cfg(feature = "verify")]
+    let dl = dl.verify(downloader::verify::sha3_256(vec![
+        0xb8, 0x96, 0xb7, 0xec, 0x34, 0xb9, 0x15, 0x64, 0x29, 0xe0, 0x19, 0xee, 0x33, 0xd8, 0x33,
+        0x10, 0xa4, 0x47, 0xb4, 0x6d, 0x35, 0xb2, 0x52, 0x1d, 0x8e, 0x7c, 0x22, 0xdc, 0xb5, 0x50,
+        0x73, 0xf9,
+    ]));
+
     downloader.queue(dl);
 
     let result = downloader.download().unwrap();
 
     for r in result {
         println!(
-            "Download: {}: {} ({}).",
+            "Download of {}: {} ({}), Verification: {} => {}.",
             r.file_name.to_string_lossy(),
             r.status.last().unwrap_or(&(String::new(), 0)).1,
-            if r.is_success() { "SUCCESS" } else { "FAILED" },
+            if r.was_downloaded() {
+                "SUCCESS"
+            } else {
+                "FAILED"
+            },
+            if r.was_verified() { "PASSED" } else { "FAILED" },
+            if r.was_success() {
+                "SUCCESS"
+            } else {
+                "FAILURE"
+            },
         )
     }
 }

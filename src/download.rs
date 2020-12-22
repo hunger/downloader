@@ -43,15 +43,37 @@ async fn download_url(
     }
 }
 
-async fn download(client: reqwest::Client, download: Download, retries: u16) -> DownloadResult {
-    let mut status = Vec::new();
+async fn verify_download(
+    path: std::path::PathBuf,
+    verify_callback: crate::Verify,
+    progress: crate::Progress,
+    message: &str,
+) -> bool {
+    let p = progress.clone();
+    let result =
+        tokio::task::spawn_blocking(move || verify_callback(path, &move |c: u64| p.progress(c)))
+            .await
+            .unwrap_or(false);
+    progress.set_message(&format!(
+        "{} - {}",
+        message,
+        if result { "VERIFIED" } else { "FAIL" }
+    ));
+    progress.done();
+    result
+}
 
-    let mut urls = download.urls.clone();
+async fn download(client: reqwest::Client, mut download: Download, retries: u16) -> DownloadResult {
+    let mut status = Vec::new();
+    let file_name = std::mem::take(&mut download.file_name);
+    let mut verified = false;
+    let mut must_verify = false;
+
+    let mut urls = std::mem::take(&mut download.urls);
     assert!(!urls.is_empty());
 
-    let file_name = download.file_name;
     let mut progress = download.progress.expect("This has been set!").clone();
-    let mut message;
+    let mut message = String::new();
 
     if let Ok(file) = std::fs::File::create(&file_name) {
         let mut writer = std::io::BufWriter::new(file);
@@ -94,12 +116,27 @@ async fn download(client: reqwest::Client, download: Download, retries: u16) -> 
             }
 
             if s.is_success() {
+                must_verify = true;
                 break;
             }
         }
     }
 
-    DownloadResult { status, file_name }
+    if must_verify {
+        verified = verify_download(
+            file_name.clone(),
+            std::mem::replace(&mut download.verify_callback, crate::verify::noop()),
+            progress.clone(),
+            &message,
+        )
+        .await;
+    }
+
+    DownloadResult {
+        status,
+        file_name,
+        verified,
+    }
 }
 
 /// Run the provided list of `downloads`, using the provided `client`
