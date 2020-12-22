@@ -1,24 +1,27 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) 2020 Tobias Hunger <tobias.hunger@gmail.com>
 
-//! The implementation of the `Download` struct
+//! The `Download` struct is used to describe a file that is
+//! supposed to get downloaded.
 
 // ----------------------------------------------------------------------
 // - Download:
 // ----------------------------------------------------------------------
 
-/// A Progress reporter
+/// A Progress reporter to use for the `Download`
 pub type Progress = std::sync::Arc<dyn crate::progress::Reporter>;
 
-/// A simple progress callback passed to `VerifyCallback`
+/// A simplified progress callback passed to `Verify`. It only takes a progress
+/// value, which is relative to the file length in bytes.
 pub type SimpleProgress = dyn Fn(u64) + Sync;
 
 /// A callback to used to verify the download.
 pub type Verify = std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgress) -> bool + Send + Sync>;
 
-/// A `Download` to be run.
+/// A `Download`.
 pub struct Download {
-    /// A list of URLs that this file can be retrieved from
+    /// A list of URLs that this file can be retrieved from. `downloader` will pick
+    /// the download URL from this list at random.
     pub urls: Vec<String>,
     /// A progress `Reporter` to report the download process with.
     pub progress: Option<Progress>,
@@ -56,7 +59,7 @@ impl Download {
         }
     }
 
-    /// Create a new `Download` based on a list of mirrors
+    /// Create a new `Download` based on a list of mirror urls.
     #[must_use]
     pub fn new_mirrored(urls: &[&str]) -> Self {
         let urls: Vec<String> = urls.iter().map(|s| String::from(*s)).collect();
@@ -70,7 +73,8 @@ impl Download {
         }
     }
 
-    /// Register a callback to provide progress information
+    /// Set the name of the downloaded file. This filename can be absolute or
+    /// relative to the `download_folder` defined in the `Downloader`.
     ///
     /// Default is the file name on the server side (if available)
     #[must_use]
@@ -81,7 +85,7 @@ impl Download {
 
     /// Register handling of progress information
     ///
-    /// Defaults to not printing any progress infromation.
+    /// Defaults to not printing any progress information.
     #[must_use]
     pub fn progress(mut self, progress: Progress) -> Self {
         self.progress = Some(progress);
