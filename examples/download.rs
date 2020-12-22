@@ -88,21 +88,9 @@ fn main() {
     let result = downloader.download(&[dl]).unwrap();
 
     for r in result {
-        println!(
-            "Download of {}: {} ({}), Verification: {} => {}.",
-            r.file_name.to_string_lossy(),
-            r.status.last().unwrap_or(&(String::new(), 0)).1,
-            if r.was_downloaded() {
-                "SUCCESS"
-            } else {
-                "FAILED"
-            },
-            if r.was_verified() { "PASSED" } else { "FAILED" },
-            if r.was_success() {
-                "SUCCESS"
-            } else {
-                "FAILURE"
-            },
-        )
+        match r {
+            Err(e) => println!("Error: {}", e.to_string()),
+            Ok(s) => println!("Success: {}", &s),
+        };
     }
 }

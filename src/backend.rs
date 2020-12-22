@@ -3,7 +3,7 @@
 
 //! The actual download code
 
-use crate::{Download, DownloadResult};
+use crate::{Download, DownloadSummary, Error, Result, Verification};
 
 use futures::stream::{self, StreamExt};
 use rand::seq::SliceRandom;
@@ -49,26 +49,35 @@ async fn verify_download(
     verify_callback: crate::Verify,
     progress: crate::Progress,
     message: &str,
-) -> bool {
+) -> Verification {
     let p = progress.clone();
     let result =
         tokio::task::spawn_blocking(move || verify_callback(path, &move |c: u64| p.progress(c)))
             .await
-            .unwrap_or(false);
+            .unwrap_or(crate::Verification::NotVerified);
     progress.set_message(&format!(
         "{} - {}",
         message,
-        if result { "VERIFIED" } else { "FAIL" }
+        match result {
+            Verification::NotVerified => "not verified",
+            Verification::Failed => "FAILED",
+            Verification::Ok => "Ok",
+        }
     ));
     progress.done();
     result
 }
 
-async fn download(client: reqwest::Client, mut download: Download, retries: u16) -> DownloadResult {
-    let mut status = Vec::new();
-    let file_name = std::mem::take(&mut download.file_name);
-    let mut verified = false;
-    let mut must_verify = false;
+async fn download(
+    client: reqwest::Client,
+    mut download: Download,
+    retries: u16,
+) -> Result<DownloadSummary> {
+    let mut summary = DownloadSummary {
+        status: Vec::new(),
+        file_name: std::mem::take(&mut download.file_name),
+        verified: Verification::NotVerified,
+    };
 
     let mut urls = std::mem::take(&mut download.urls);
     assert!(!urls.is_empty());
@@ -76,10 +85,12 @@ async fn download(client: reqwest::Client, mut download: Download, retries: u16)
     let mut progress = download.progress.expect("This has been set!").clone();
     let mut message = String::new();
 
+    let mut download_successful = false;
+
     if let Ok(file) = std::fs::OpenOptions::new()
         .create_new(true)
         .write(true)
-        .open(&file_name)
+        .open(&summary.file_name)
     {
         let mut writer = std::io::BufWriter::new(file);
 
@@ -88,7 +99,8 @@ async fn download(client: reqwest::Client, mut download: Download, retries: u16)
 
             message = format!(
                 "{} {}/{}",
-                file_name
+                &summary
+                    .file_name
                     .file_name()
                     .unwrap_or_else(|| std::ffi::OsStr::new("<unknown>"))
                     .to_string_lossy(),
@@ -108,7 +120,7 @@ async fn download(client: reqwest::Client, mut download: Download, retries: u16)
             )
             .unwrap_or(reqwest::StatusCode::BAD_REQUEST);
 
-            status.push((url.clone(), s.as_u16()));
+            summary.status.push((url.clone(), s.as_u16()));
 
             if s.is_server_error() {
                 urls = urls
@@ -121,27 +133,28 @@ async fn download(client: reqwest::Client, mut download: Download, retries: u16)
             }
 
             if s.is_success() {
-                must_verify = true;
+                download_successful = true;
                 break;
             }
         }
     }
 
-    if must_verify {
-        verified = verify_download(
-            file_name.clone(),
-            std::mem::replace(&mut download.verify_callback, crate::verify::noop()),
-            progress.clone(),
-            &message,
-        )
-        .await;
+    if !download_successful {
+        return Err(Error::Download(summary));
     }
 
-    DownloadResult {
-        status,
-        file_name,
-        verified,
+    summary.verified = verify_download(
+        summary.file_name.clone(),
+        std::mem::replace(&mut download.verify_callback, crate::verify::noop()),
+        progress.clone(),
+        &message,
+    )
+    .await;
+    if summary.verified == Verification::Failed {
+        return Err(Error::Verification(summary));
     }
+
+    Ok(summary)
 }
 
 /// Run the provided list of `downloads`, using the provided `client`
@@ -151,7 +164,7 @@ pub(crate) fn run(
     retries: u16,
     parallel_requests: u16,
     spin: &dyn Fn(),
-) -> Vec<DownloadResult> {
+) -> Vec<Result<DownloadSummary>> {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     let cl = client.clone();
 
@@ -159,7 +172,7 @@ pub(crate) fn run(
         stream::iter(downloads)
             .map(move |d| download(cl.clone(), d, retries))
             .buffer_unordered(parallel_requests as usize)
-            .collect::<Vec<DownloadResult>>()
+            .collect::<Vec<Result<DownloadSummary>>>()
             .await
     });
 

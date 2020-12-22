@@ -3,7 +3,7 @@
 
 //! The `Downloader` that holds all the logic to manage the `Downloads`
 
-use crate::{Download, DownloadResult, Error, Result};
+use crate::{Download, DownloadSummary, Error, Result};
 
 use crate::progress::Factory;
 
@@ -117,7 +117,7 @@ impl Downloader {
     ///
     /// # Errors
     /// `Error::DownloadDefinition` if the download is detected to be broken in some way.
-    pub fn download(&mut self, downloads: &[Download]) -> Result<Vec<DownloadResult>> {
+    pub fn download(&mut self, downloads: &[Download]) -> Result<Vec<Result<DownloadSummary>>> {
         #[cfg(feature = "tui")]
         let factory = crate::progress::Tui::default();
         #[cfg(not(feature = "tui"))]
