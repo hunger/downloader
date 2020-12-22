@@ -8,13 +8,75 @@ use crate::{Download, DownloadResult, Error, Result};
 use crate::progress::Factory;
 
 // ----------------------------------------------------------------------
+// - Helper:
+// ----------------------------------------------------------------------
+
+fn validate_downloads(
+    downloads: &[Download],
+    download_folder: &std::path::Path,
+    factory: &dyn crate::progress::Factory,
+) -> Result<Vec<Download>> {
+    let mut known_urls = std::collections::HashSet::new();
+    let mut known_download_paths = std::collections::HashSet::new();
+
+    let mut result = Vec::with_capacity(downloads.len());
+
+    for d in downloads {
+        if d.urls.is_empty() {
+            return Err(Error::DownloadDefinition(String::from(
+                "No URL found to download.",
+            )));
+        }
+
+        for u in &d.urls {
+            if !known_urls.insert(u) {
+                return Err(Error::DownloadDefinition(format!(
+                    "Download URL \"{}\" is used more than once.",
+                    u
+                )));
+            }
+        }
+
+        let urls = d.urls.clone();
+
+        let file_name = download_folder.join(&d.file_name);
+        if d.file_name.to_string_lossy().is_empty() {
+            return Err(Error::DownloadDefinition(String::from(
+                "Failed to get full download path.",
+            )));
+        }
+
+        if !known_download_paths.insert(&d.file_name) {
+            return Err(Error::DownloadDefinition(format!(
+                "Download file name \"{}\" is used more than once.",
+                d.file_name.to_string_lossy(),
+            )));
+        }
+
+        let progress = if d.progress.is_none() {
+            factory.create_reporter()
+        } else {
+            d.progress.as_ref().expect("Was Some just now...").clone()
+        };
+
+        result.push(Download {
+            urls,
+            file_name,
+            progress: Some(progress),
+            verify_callback: d.verify_callback.clone(),
+        })
+    }
+
+    Ok(result)
+}
+
+// ----------------------------------------------------------------------
 // - Downloader:
 // ----------------------------------------------------------------------
 
 /// The main entry point
 pub struct Downloader {
     client: reqwest::Client,
-    downloads: Vec<Download>,
     parallel_requests: u16,
     retries: u16,
     download_folder: std::path::PathBuf,
@@ -44,57 +106,19 @@ impl Downloader {
         }
     }
 
-    /// Queue a `Download`
-    pub fn queue(&mut self, download: Download) {
-        self.downloads.push(download);
-    }
-
     /// Start the download
     ///
     /// # Errors
     /// `Error::Setup` if the download is detected to be broken in some way.
-    pub fn download(&mut self) -> Result<Vec<DownloadResult>> {
-        let mut to_process = std::mem::take(&mut self.downloads);
-
-        let mut known_urls = std::collections::HashSet::new();
-        let mut known_download_paths = std::collections::HashSet::new();
-
+    pub fn download(&mut self, downloads: &[Download]) -> Result<Vec<DownloadResult>> {
         #[cfg(feature = "tui")]
         let factory = crate::progress::Tui::default();
         #[cfg(not(feature = "tui"))]
         let factory = crate::progress::Noop::default();
 
-        for d in &mut to_process {
-            if d.urls.is_empty() {
-                return Err(Error::Setup(String::from("No URL found to download.")));
-            }
-
-            for u in &d.urls {
-                if !known_urls.insert(u) {
-                    return Err(Error::Setup(format!(
-                        "Download URL \"{}\" is used more than once.",
-                        u
-                    )));
-                }
-            }
-
-            d.file_name = self.download_folder.join(&d.file_name);
-            if d.file_name.to_string_lossy().is_empty() {
-                return Err(Error::Setup(String::from(
-                    "Failed to get full download path.",
-                )));
-            }
-
-            if !known_download_paths.insert(&d.file_name) {
-                return Err(Error::Setup(format!(
-                    "Download file name \"{}\" is used more than once.",
-                    d.file_name.to_string_lossy(),
-                )));
-            }
-
-            if d.progress.is_none() {
-                d.progress = Some(factory.create_reporter());
-            }
+        let to_process = validate_downloads(downloads, &self.download_folder, &factory)?;
+        if to_process.is_empty() {
+            return Ok(Vec::new());
         }
 
         Ok(crate::backend::run(
@@ -197,7 +221,6 @@ impl Builder {
 
         Ok(Downloader {
             client: builder.build()?,
-            downloads: vec![],
             parallel_requests: self.parallel_requests,
             retries: self.retries,
             download_folder: download_folder.to_owned(),

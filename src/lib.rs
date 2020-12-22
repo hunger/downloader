@@ -34,6 +34,9 @@ pub enum Error {
     /// The Setup is incomplete or bogus.
     #[error("Setup error: {0}")]
     Setup(String),
+    /// A Definition of a Download is incomplete
+    #[error("Download definition: {0}")]
+    DownloadDefinition(String),
     /// The backend crate reported some issue.
     #[error("Backend error: {0}")]
     Backend(#[from] reqwest::Error),
