@@ -1,6 +1,6 @@
 [package]
 name = "downloader"
-version = "0.2.0"
+version = "0.2.2"
 authors = ["Tobias Hunger <tobias.hunger@gmail.com>"]
 edition = "2018"
 description = "A simple way to download things via HTTP/HTTPS"
@@ -14,13 +14,15 @@ default = []
 tui = [ "indicatif" ]
 verify = [ "sha3" ]
 
+# Pass down features to reqwest:
+rustls-tls= ["reqwest/rustls-tls"]
+
 [dependencies]
 futures = { version = "0.3" }
-reqwest = { version = "0.10" }
+reqwest = { version = "0.11" }
 rand = { version = "0.8" }
 thiserror = { version = "1.0" }
-# Stick with tokio 0.2, since that is what reqwest uses, too.
-tokio = { version = "0.2", features = [ "time", "rt-threaded" ] }
+tokio = { version = "1.1", features = [ "rt-multi-thread", "time" ] }
 
 indicatif = { version = "0.15", optional = true }
 sha3 = { version = "0.9", optional = true }
