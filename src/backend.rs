@@ -165,7 +165,7 @@ pub(crate) fn run(
     parallel_requests: u16,
     spin: &dyn Fn(),
 ) -> Vec<Result<DownloadSummary>> {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let cl = client.clone();
 
     let result = rt.spawn(async move {
