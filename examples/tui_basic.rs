@@ -22,13 +22,13 @@ fn main() {
     // Download with an explicit filename
     let dl = downloader::Download::new("https://example.org/")
         .file_name(std::path::Path::new("example.html"));
-    
+
     // Download with an inferred filename
     let dl2 = downloader::Download::new(
         "https://cdimage.debian.org/debian-cd/current/i386/iso-cd/debian-10.9.0-i386-netinst.iso",
     );
 
-    let result = downloader.download(&[dl,dl2]).unwrap();
+    let result = downloader.download(&[dl, dl2]).unwrap();
 
     for r in result {
         match r {
