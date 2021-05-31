@@ -12,7 +12,7 @@ use std::io::{Seek, SeekFrom, Write};
 
 fn select_url(urls: &[String]) -> String {
     assert!(!urls.is_empty());
-    urls.choose(&mut rand::thread_rng()).unwrap().to_owned()
+    urls.choose(&mut rand::thread_rng()).unwrap().clone()
 }
 
 async fn download_url(
@@ -125,7 +125,7 @@ async fn download(
             if s.is_server_error() {
                 urls = urls
                     .iter()
-                    .filter_map(|u| if u == &url { Some(u.to_owned()) } else { None })
+                    .filter_map(|u| if u == &url { Some(u.clone()) } else { None })
                     .collect();
                 if urls.is_empty() {
                     break;

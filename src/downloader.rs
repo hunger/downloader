@@ -232,7 +232,7 @@ impl Builder {
             })?,
             parallel_requests: self.parallel_requests,
             retries: self.retries,
-            download_folder: download_folder.to_owned(),
+            download_folder: download_folder.clone(),
         })
     }
 }
