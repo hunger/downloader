@@ -1,0 +1,25 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "languageSettings": [
+        {
+            "languageId": "rust",
+            "words": [
+              "reqwest",
+              "thiserror"
+            ]
+        }
+    ],
+    "words": [
+        "clippy",
+        "indicatif",
+        "rustfmt"
+    ],
+    "ignorePaths": [
+        "cspell.json",
+        ".pre-commit-config.yaml",
+        ".github/workflows/*.yaml",
+        "Cargo.toml",
+        ".reuse"
+    ]
+}
