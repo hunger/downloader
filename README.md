@@ -26,8 +26,8 @@ of your crate:
 
 #### Features
 
-* `tui` feature uses `indicatif` crate to provide a text ui for downloads
-* `verify` feature enables (optional) verification of downloads using sha3 hashes
+- `tui` feature uses `indicatif` crate to provide a text ui for downloads
+- `verify` feature enables (optional) verification of downloads using sha3 hashes
 
 ## License
 

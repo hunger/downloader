@@ -1,11 +1,12 @@
----
+______________________________________________________________________
+
 name: Bug report
 about: Create a report to help us improve
 title: ''
 labels: bug
 assignees: ''
 
----
+______________________________________________________________________
 
 ## Bug description
 
@@ -33,9 +34,9 @@ Steps to reproduce the behavior. Something like:
 
 <!-- Please fill the following information. -->
 
-- OS: [e.g. iOS]
-- Browser [e.g. chrome, safari]
-- Version [e.g. 22]
+- OS: \[e.g. iOS\]
+- Browser \[e.g. chrome, safari\]
+- Version \[e.g. 22\]
 
 ## Additional context
 
