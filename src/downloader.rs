@@ -203,16 +203,24 @@ impl Builder {
         self
     }
 
-    /// Build a downloader.
+    /// Construct a new reqwest::Client configured with settings from the Builder
     ///
     /// # Errors
     /// * `Error::Setup`, when setup fails
-    pub fn build(&mut self) -> crate::Result<Downloader> {
-        let builder = reqwest::Client::builder()
+    fn build_client(&self) -> crate::Result<reqwest::Client> {
+        reqwest::Client::builder()
             .user_agent(self.user_agent.clone())
             .connect_timeout(self.connect_timeout)
-            .timeout(self.timeout);
+            .timeout(self.timeout)
+            .build()
+            .map_err(|e| Error::Setup(format!("Failed to set up backend: {}", e)))
+    }
 
+    /// Build a downloader with a specified reqwest::Client
+    ///
+    /// # Errors
+    /// * `Error::Setup`, when setup fails
+    pub fn build_with_client(&mut self, client: reqwest::Client) -> crate::Result<Downloader> {
         let download_folder = &self.download_folder;
         if download_folder.to_string_lossy().is_empty() {
             return Err(crate::Error::Setup(
@@ -227,12 +235,19 @@ impl Builder {
         }
 
         Ok(Downloader {
-            client: builder
-                .build()
-                .map_err(|e| Error::Setup(format!("Failed to set up backend: {}", e)))?,
+            client: client,
             parallel_requests: self.parallel_requests,
             retries: self.retries,
             download_folder: download_folder.clone(),
         })
+    }
+
+    /// Build a downloader.
+    ///
+    /// # Errors
+    /// * `Error::Setup`, when setup fails
+    pub fn build(&mut self) -> crate::Result<Downloader> {
+        let client = self.build_client()?;
+        self.build_with_client(client)
     }
 }
