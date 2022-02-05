@@ -93,24 +93,7 @@ impl Downloader {
     /// Create a `Builder` for `Downloader` to allow for fine-grained configuration.
     #[must_use]
     pub fn builder() -> Builder {
-        let download_folder =
-            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(""));
-        let download_folder = if download_folder.to_string_lossy().is_empty() {
-            std::path::PathBuf::from(
-                std::env::var_os("HOME").unwrap_or_else(|| std::ffi::OsString::from("/")),
-            )
-        } else {
-            download_folder
-        };
-
-        Builder {
-            user_agent: format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
-            connect_timeout: std::time::Duration::from_secs(30),
-            timeout: std::time::Duration::from_secs(300),
-            parallel_requests: 32,
-            retries: 3,
-            download_folder,
-        }
+        Builder::default()
     }
 
     /// Start the download
@@ -203,7 +186,7 @@ impl Builder {
         self
     }
 
-    /// Construct a new reqwest::Client configured with settings from the Builder
+    /// Construct a new `reqwest::Client` configured with settings from the `Builder`
     ///
     /// # Errors
     /// * `Error::Setup`, when setup fails
@@ -216,7 +199,7 @@ impl Builder {
             .map_err(|e| Error::Setup(format!("Failed to set up backend: {}", e)))
     }
 
-    /// Build a downloader with a specified reqwest::Client
+    /// Build a downloader with a specified `reqwest::Client`
     ///
     /// # Errors
     /// * `Error::Setup`, when setup fails
@@ -235,7 +218,7 @@ impl Builder {
         }
 
         Ok(Downloader {
-            client: client,
+            client,
             parallel_requests: self.parallel_requests,
             retries: self.retries,
             download_folder: download_folder.clone(),
@@ -249,5 +232,28 @@ impl Builder {
     pub fn build(&mut self) -> crate::Result<Downloader> {
         let client = self.build_client()?;
         self.build_with_client(client)
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        let download_folder =
+            std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(""));
+        let download_folder = if download_folder.to_string_lossy().is_empty() {
+            std::path::PathBuf::from(
+                std::env::var_os("HOME").unwrap_or_else(|| std::ffi::OsString::from("/")),
+            )
+        } else {
+            download_folder
+        };
+
+        Self {
+            user_agent: format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
+            connect_timeout: std::time::Duration::from_secs(30),
+            timeout: std::time::Duration::from_secs(300),
+            parallel_requests: 32,
+            retries: 3,
+            download_folder,
+        }
     }
 }
