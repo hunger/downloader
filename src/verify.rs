@@ -58,16 +58,15 @@ pub fn noop() -> crate::Verify {
 // - SHA3:
 // ----------------------------------------------------------------------
 
-/// Make sure the downloaded file matches a SHA3 hash
+/// Make sure the downloaded file matches a provided hash using a provided Digest function
 #[cfg(feature = "verify")]
 #[must_use]
-pub fn sha3_256(hash: Vec<u8>) -> crate::Verify {
-    use sha3::Digest;
+pub fn with_digest<D: digest::Digest>(hash: Vec<u8>) -> crate::Verify {
     use std::io::Read;
 
     std::sync::Arc::new(
         move |path: std::path::PathBuf, cb: &crate::SimpleProgress| {
-            let mut hasher = sha3::Sha3_256::new();
+            let mut hasher = D::new();
 
             if let Ok(file) = std::fs::OpenOptions::new().read(true).open(&path) {
                 let mut reader = std::io::BufReader::with_capacity(1024 * 1024, file);
