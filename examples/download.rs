@@ -43,10 +43,14 @@ impl downloader::progress::Reporter for SimpleReporter {
 
     fn progress(&self, current: u64) {
         if let Some(p) = self.private.lock().unwrap().as_mut() {
+            let max_bytes = match p.max_progress {
+                Some(bytes) => format!("{:?}", bytes),
+                None => "{unknown}".to_owned(),
+            };
             if p.last_update.elapsed().as_millis() >= 1000 {
                 println!(
-                    "debian: {} of {:?}bytes. [{}]",
-                    current, p.max_progress, p.message
+                    "test file: {} of {} bytes. [{}]",
+                    current, max_bytes, p.message
                 );
                 p.last_update = std::time::Instant::now();
             }
@@ -54,13 +58,13 @@ impl downloader::progress::Reporter for SimpleReporter {
     }
 
     fn set_message(&self, message: &str) {
-        println!("debian: Message changed to: {}", message);
+        println!("test file: Message changed to: {}", message);
     }
 
     fn done(&self) {
         let mut guard = self.private.lock().unwrap();
         *guard = None;
-        println!("debian: [DONE]");
+        println!("test file: [DONE]");
     }
 }
 
@@ -71,19 +75,24 @@ fn main() {
         .build()
         .unwrap();
 
-    let dl = downloader::Download::new(
-        "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.7.0-amd64-netinst.iso",
-    );
+    let dl = downloader::Download::new("https://speed.hetzner.de/100MB.bin");
 
     #[cfg(not(feature = "tui"))]
     let dl = dl.progress(SimpleReporter::create());
 
     #[cfg(feature = "verify")]
-    let dl = dl.verify(downloader::verify::sha3_256(vec![
-        0xb8, 0x96, 0xb7, 0xec, 0x34, 0xb9, 0x15, 0x64, 0x29, 0xe0, 0x19, 0xee, 0x33, 0xd8, 0x33,
-        0x10, 0xa4, 0x47, 0xb4, 0x6d, 0x35, 0xb2, 0x52, 0x1d, 0x8e, 0x7c, 0x22, 0xdc, 0xb5, 0x50,
-        0x73, 0xf9,
-    ]));
+    let dl = {
+        use downloader::verify;
+        fn decode_hex(s: &str) -> Result<Vec<u8>, std::num::ParseIntError> {
+            (0..s.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+                .collect()
+        }
+        dl.verify(verify::with_digest::<sha3::Sha3_256>(
+            decode_hex("2197e485d463ac2b868e87f0d4547b4223ff5220a0694af2593cbe7c796f7fd6").unwrap(),
+        ))
+    };
 
     let result = downloader.download(&[dl]).unwrap();
 
