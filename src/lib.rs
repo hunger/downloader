@@ -27,11 +27,13 @@
 pub mod backend;
 pub mod download;
 pub mod downloader;
+pub mod mirror;
 pub mod progress;
 pub mod verify;
 
 pub use crate::download::Download;
 pub use crate::downloader::Downloader;
+pub use crate::mirror::{MirrorContext};
 pub use crate::progress::Progress;
 pub use crate::verify::{SimpleProgress, Verification, Verify};
 

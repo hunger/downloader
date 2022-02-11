@@ -8,7 +8,7 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic)]
 #![allow(clippy::non_ascii_literal)]
 
-use downloader::Downloader;
+use downloader::{Downloader, MirrorContext};
 
 // Define a custom progress reporter:
 struct SimpleReporterPrivate {
@@ -93,6 +93,24 @@ fn main() {
             decode_hex("2197e485d463ac2b868e87f0d4547b4223ff5220a0694af2593cbe7c796f7fd6").unwrap(),
         ))
     };
+
+    let result = downloader.download(&[dl]).unwrap();
+
+    for r in result {
+        match r {
+            Err(e) => println!("Error: {}", e.to_string()),
+            Ok(s) => println!("Success: {}", &s),
+        };
+    }
+
+    let debian_mirrors = MirrorContext::from_urls(&[
+        "http://ftp.au.debian.org/debian/",
+        "http://ftp.ca.debian.org/debian/",
+        "http://ftp.cz.debian.org/debian/",
+        "http://ftp.us.debian.org/debian/",
+    ]).unwrap();
+
+    let dl = downloader::Download::new_mirrored(debian_mirrors.urls_for_file("README.html").unwrap().as_slice());
 
     let result = downloader.download(&[dl]).unwrap();
 

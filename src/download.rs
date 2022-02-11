@@ -51,8 +51,8 @@ impl Download {
 
     /// Create a new `Download` based on a list of mirror urls.
     #[must_use]
-    pub fn new_mirrored(urls: &[&str]) -> Self {
-        let urls: Vec<String> = urls.iter().map(|s| String::from(*s)).collect();
+    pub fn new_mirrored<T: AsRef<str>>(urls: &[T]) -> Self {
+        let urls: Vec<String> = urls.iter().map(|s| s.as_ref().to_string()).collect();
         let url = urls.get(0).unwrap_or(&String::new()).clone();
 
         Self {
