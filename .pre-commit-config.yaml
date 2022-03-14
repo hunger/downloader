@@ -27,7 +27,7 @@ repos:
     -   id: clippy
     -   id: fmt
 -   repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v5.8.4
+    rev: v5.9.0
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
