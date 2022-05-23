@@ -27,7 +27,7 @@ repos:
     -   id: clippy
     -   id: fmt
 -   repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v5.9.1
+    rev: v6.0.0
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
@@ -52,7 +52,7 @@ repos:
     -   id: check-github-workflows
     -   id: check-github-actions
 -   repo: https://github.com/fsfe/reuse-tool
-    rev: v0.14.0
+    rev: v1.0.0
     hooks:
     -   id: reuse
 
