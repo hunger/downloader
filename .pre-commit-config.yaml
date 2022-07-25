@@ -27,11 +27,11 @@ repos:
     -   id: clippy
     -   id: fmt
 -   repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.3.0
+    rev: v6.3.2
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
-    rev: v1.1.0
+    rev: v1.2.0
     hooks:
     -   id: optimize-png
 -   repo: https://github.com/executablebooks/mdformat
