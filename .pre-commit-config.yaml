@@ -27,7 +27,7 @@ repos:
     -   id: clippy
     -   id: fmt
 -   repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.6.0
+    rev: v6.8.1
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
@@ -35,7 +35,7 @@ repos:
     hooks:
     -   id: optimize-png
 -   repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.14
+    rev: 0.7.16
     hooks:
     -   id: mdformat
         additional_dependencies:
@@ -47,7 +47,7 @@ repos:
         -   mdformat-tables
         -   mdformat-web
 -   repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.17.1
+    rev: 0.18.1
     hooks:
     -   id: check-github-workflows
     -   id: check-github-actions
