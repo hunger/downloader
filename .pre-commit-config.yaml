@@ -17,7 +17,7 @@ repos:
     -   id: fix-byte-order-marker
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 22.8.0
     hooks:
     -   id: black
 -   repo: https://github.com/doublify/pre-commit-rust
@@ -31,7 +31,7 @@ repos:
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
-    rev: v1.2.0
+    rev: v1.2.1
     hooks:
     -   id: optimize-png
 -   repo: https://github.com/executablebooks/mdformat
@@ -47,7 +47,7 @@ repos:
         -   mdformat-tables
         -   mdformat-web
 -   repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.18.1
+    rev: 0.18.2
     hooks:
     -   id: check-github-workflows
     -   id: check-github-actions
