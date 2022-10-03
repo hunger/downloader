@@ -4,6 +4,8 @@
 //! The `Download` struct is used to describe a file that is
 //! supposed to get downloaded.
 
+use std::path::{Path, PathBuf};
+
 // ----------------------------------------------------------------------
 // - Download:
 // ----------------------------------------------------------------------
@@ -16,24 +18,24 @@ pub struct Download {
     /// A progress `Reporter` to report the download process with.
     pub progress: Option<crate::Progress>,
     /// The file name to be used for the downloaded file.
-    pub file_name: std::path::PathBuf,
+    pub file_name: PathBuf,
     /// A callback used to verify the download with.
     pub verify_callback: crate::Verify,
 }
 
-fn file_name_from_url(url: &str) -> std::path::PathBuf {
+fn file_name_from_url(url: &str) -> PathBuf {
     if url.is_empty() {
-        return std::path::PathBuf::new();
+        return PathBuf::new();
     }
-    let url = match reqwest::Url::parse(url) {
+    let url = match url::Url::parse(url) {
         Ok(u) => u,
-        Err(_) => return std::path::PathBuf::new(),
+        Err(_) => return PathBuf::new(),
     };
 
     let url_file = url.path_segments();
     match url_file {
-        Some(f) => std::path::PathBuf::from(f.last().unwrap_or("")),
-        None => std::path::PathBuf::new(),
+        Some(f) => PathBuf::from(f.last().unwrap_or("")),
+        None => PathBuf::new(),
     }
 }
 
@@ -51,8 +53,8 @@ impl Download {
 
     /// Create a new `Download` based on a list of mirror urls.
     #[must_use]
-    pub fn new_mirrored(urls: &[&str]) -> Self {
-        let urls: Vec<String> = urls.iter().map(|s| String::from(*s)).collect();
+    pub fn new_mirrored<T: AsRef<str>>(urls: &[T]) -> Self {
+        let urls: Vec<String> = urls.iter().map(|s| s.as_ref().to_string()).collect();
         let url = urls.get(0).unwrap_or(&String::new()).clone();
 
         Self {
@@ -68,7 +70,7 @@ impl Download {
     ///
     /// Default is the file name on the server side (if available)
     #[must_use]
-    pub fn file_name(mut self, path: &std::path::Path) -> Self {
+    pub fn file_name(mut self, path: &Path) -> Self {
         self.file_name = path.to_owned();
         self
     }

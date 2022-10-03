@@ -13,13 +13,13 @@
 //! Callbacks to provide progress information are supported as well.
 
 // Setup warnings/errors:
-#![forbid(unsafe_code)]
-#![deny(
-    bare_trait_objects,
-    unused_doc_comments,
-    unused_import_braces,
-    missing_docs
-)]
+// #![forbid(unsafe_code)]
+// #![deny(
+//     bare_trait_objects,
+//     unused_doc_comments,
+//     unused_import_braces,
+//     missing_docs
+// )]
 // Clippy:
 #![warn(clippy::all, clippy::nursery, clippy::pedantic)]
 #![allow(clippy::non_ascii_literal)]
@@ -27,11 +27,13 @@
 pub mod backend;
 pub mod download;
 pub mod downloader;
+pub mod mirror;
 pub mod progress;
 pub mod verify;
 
 pub use crate::download::Download;
 pub use crate::downloader::Downloader;
+pub use crate::mirror::{MirrorContext};
 pub use crate::progress::Progress;
 pub use crate::verify::{SimpleProgress, Verification, Verify};
 
