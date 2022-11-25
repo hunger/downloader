@@ -46,8 +46,8 @@ repos:
         -   mdformat-rustfmt
         -   mdformat-tables
         -   mdformat-web
--   repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.18.4
+-   repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.19.2
     hooks:
     -   id: check-github-workflows
     -   id: check-github-actions
@@ -61,5 +61,3 @@ ci:
   -   cargo-check
   -   clippy
   -   fmt
-  -   check-github-actions
-  -   check-github-workflows
