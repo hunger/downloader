@@ -27,10 +27,10 @@ futures = { version = "0.3" }
 reqwest = { version = "0.11", default-features = false }
 rand = { version = "0.8" }
 thiserror = { version = "1.0" }
-tokio = { version = "1.1", features = [ "rt-multi-thread", "time" ] }
+tokio = { version = "1.23", features = [ "rt-multi-thread", "time" ] }
 
 digest = { version = "0.10.1", optional = true }
-indicatif = { version = "0.16.2", optional = true }
+indicatif = { version = "0.17.2", optional = true }
 
 [dev-dependencies]
 sha3 = "0.10.0"  # used in examples
