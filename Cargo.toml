@@ -3,7 +3,7 @@
 
 [package]
 name = "downloader"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Tobias Hunger <tobias.hunger@gmail.com>"]
 edition = "2018"
 description = "A simple way to download things via HTTP/HTTPS"
