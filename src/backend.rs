@@ -37,7 +37,7 @@ async fn download_url(
         }
 
         let result = response.status().as_u16();
-        progress.set_message(&format!("{} - {}", message, result));
+        progress.set_message(&format!("{message} - {result}"));
         result
     } else {
         reqwest::StatusCode::BAD_REQUEST.as_u16()

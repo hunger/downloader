@@ -31,8 +31,7 @@ fn validate_downloads(
         for u in &d.urls {
             if !known_urls.insert(u) {
                 return Err(Error::DownloadDefinition(format!(
-                    "Download URL \"{}\" is used more than once.",
-                    u
+                    "Download URL \"{u}\" is used more than once.",
                 )));
             }
         }
@@ -196,7 +195,7 @@ impl Builder {
             .connect_timeout(self.connect_timeout)
             .timeout(self.timeout)
             .build()
-            .map_err(|e| Error::Setup(format!("Failed to set up backend: {}", e)))
+            .map_err(|e| Error::Setup(format!("Failed to set up backend: {e}")))
     }
 
     /// Build a downloader with a specified `reqwest::Client`

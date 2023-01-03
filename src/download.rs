@@ -25,16 +25,9 @@ fn file_name_from_url(url: &str) -> std::path::PathBuf {
     if url.is_empty() {
         return std::path::PathBuf::new();
     }
-    let url = match reqwest::Url::parse(url) {
-        Ok(u) => u,
-        Err(_) => return std::path::PathBuf::new(),
-    };
+    let Ok(url) = reqwest::Url::parse(url) else { return std::path::PathBuf::new() };
 
-    let url_file = url.path_segments();
-    match url_file {
-        Some(f) => std::path::PathBuf::from(f.last().unwrap_or("")),
-        None => std::path::PathBuf::new(),
-    }
+    url.path_segments().map_or_else(std::path::PathBuf::new, |f| std::path::PathBuf::from(f.last().unwrap_or("")))
 }
 
 impl Download {

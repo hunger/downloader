@@ -18,7 +18,7 @@ pub type Verify =
     std::sync::Arc<dyn Fn(std::path::PathBuf, &SimpleProgress) -> Verification + Send + Sync>;
 
 /// The possible states of file verification
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Verification {
     /// The file has not been verified at all.
     NotVerified,
