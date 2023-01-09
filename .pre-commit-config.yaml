@@ -47,7 +47,7 @@ repos:
         -   mdformat-tables
         -   mdformat-web
 -   repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.19.2
+    rev: 0.20.0
     hooks:
     -   id: check-github-workflows
     -   id: check-github-actions
