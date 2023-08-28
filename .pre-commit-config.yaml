@@ -17,7 +17,7 @@ repos:
     -   id: fix-byte-order-marker
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.7.0
     hooks:
     -   id: black
 -   repo: https://github.com/doublify/pre-commit-rust
@@ -27,7 +27,7 @@ repos:
     -   id: clippy
     -   id: fmt
 -   repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.26.0
+    rev: v7.0.1
     hooks:
     -   id: cspell
 -   repo: https://github.com/redwarp/optimize-png-hooks
@@ -35,7 +35,7 @@ repos:
     hooks:
     -   id: optimize-png
 -   repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.16
+    rev: 0.7.17
     hooks:
     -   id: mdformat
         additional_dependencies:
@@ -47,12 +47,12 @@ repos:
         -   mdformat-tables
         -   mdformat-web
 -   repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.21.0
+    rev: 0.26.3
     hooks:
     -   id: check-github-workflows
     -   id: check-github-actions
 -   repo: https://github.com/fsfe/reuse-tool
-    rev: v1.1.2
+    rev: v2.1.0
     hooks:
     -   id: reuse
 
