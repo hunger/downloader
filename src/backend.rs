@@ -180,3 +180,26 @@ pub(crate) fn run(
 
     rt.block_on(result).unwrap()
 }
+
+pub(crate) async fn async_run(
+    client: &mut reqwest::Client,
+    downloads: Vec<Download>,
+    retries: u16,
+    parallel_requests: u16,
+    spin: &dyn Fn(),
+) -> Vec<Result<DownloadSummary>> {
+    let cl = client.clone();
+
+    let result = tokio::spawn(async move {
+        stream::iter(downloads)
+            .map(move |d| download(cl.clone(), d, retries))
+            .buffer_unordered(parallel_requests as usize)
+            .collect::<Vec<Result<DownloadSummary>>>()
+            .await
+    })
+    .await;
+
+    spin();
+
+    result.unwrap()
+}

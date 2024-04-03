@@ -120,6 +120,38 @@ impl Downloader {
             },
         ))
     }
+
+    /// Start the download asyncroniously
+    ///
+    /// # Errors
+    /// `Error::DownloadDefinition` if the download is detected to be broken in some way.
+    pub async fn async_download(
+        &mut self,
+        downloads: &[Download],
+    ) -> Result<Vec<Result<DownloadSummary>>> {
+        #[cfg(feature = "tui")]
+        let factory = crate::progress::Tui::default();
+        #[cfg(not(feature = "tui"))]
+        let factory = crate::progress::Noop::default();
+
+        let to_process = validate_downloads(downloads, &self.download_folder, &factory)?;
+        if to_process.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let result = crate::backend::async_run(
+            &mut self.client,
+            to_process,
+            self.retries,
+            self.parallel_requests,
+            &move || {
+                factory.join();
+            },
+        )
+        .await;
+
+        Ok(result)
+    }
 }
 
 // ----------------------------------------------------------------------
