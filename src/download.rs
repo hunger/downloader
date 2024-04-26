@@ -17,6 +17,10 @@ pub struct Download {
     pub progress: Option<crate::Progress>,
     /// The file name to be used for the downloaded file.
     pub file_name: std::path::PathBuf,
+    /// If set to `true` will check if there are a same file name and throw an error if that's the case
+    pub check_file_name: bool,
+    /// The output path used to write the file
+    pub output_path: Option<std::path::PathBuf>,
     /// A callback used to verify the download with.
     pub verify_callback: crate::Verify,
 }
@@ -25,9 +29,14 @@ fn file_name_from_url(url: &str) -> std::path::PathBuf {
     if url.is_empty() {
         return std::path::PathBuf::new();
     }
-    let Ok(url) = reqwest::Url::parse(url) else { return std::path::PathBuf::new() };
+    let Ok(url) = reqwest::Url::parse(url) else {
+        return std::path::PathBuf::new();
+    };
 
-    url.path_segments().map_or_else(std::path::PathBuf::new, |f| std::path::PathBuf::from(f.last().unwrap_or("")))
+    url.path_segments()
+        .map_or_else(std::path::PathBuf::new, |f| {
+            std::path::PathBuf::from(f.last().unwrap_or(""))
+        })
 }
 
 impl Download {
@@ -38,6 +47,24 @@ impl Download {
             urls: vec![url.to_owned()],
             progress: None,
             file_name: file_name_from_url(url),
+            check_file_name: true,
+            output_path: None,
+            verify_callback: crate::verify::noop(),
+        }
+    }
+
+    /// Create a new `Download` with a single download
+    ///
+    /// `url` is the url where you want the file to be downloaded
+    /// `output_path` is the path where the file will be write, does not affect other download!
+    #[must_use]
+    pub fn new_with_output<P: AsRef<std::path::Path>>(url: &str, output_path: P) -> Self {
+        Self {
+            urls: vec![url.to_owned()],
+            progress: None,
+            file_name: file_name_from_url(url),
+            check_file_name: true,
+            output_path: Some(output_path.as_ref().to_path_buf()),
             verify_callback: crate::verify::noop(),
         }
     }
@@ -52,6 +79,8 @@ impl Download {
             urls,
             progress: None,
             file_name: file_name_from_url(&url),
+            check_file_name: true,
+            output_path: None,
             verify_callback: crate::verify::noop(),
         }
     }

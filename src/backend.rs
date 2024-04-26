@@ -73,6 +73,11 @@ async fn download(
     mut download: Download,
     retries: u16,
 ) -> Result<DownloadSummary> {
+    println!(
+        "output path -> {:?} for {:?}",
+        &download.file_name, &download.urls
+    );
+
     let mut summary = DownloadSummary {
         status: Vec::new(),
         file_name: std::mem::take(&mut download.file_name),

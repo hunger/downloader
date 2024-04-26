@@ -28,11 +28,13 @@ fn validate_downloads(
             )));
         }
 
-        for u in &d.urls {
-            if !known_urls.insert(u) {
-                return Err(Error::DownloadDefinition(format!(
-                    "Download URL \"{u}\" is used more than once.",
-                )));
+        if d.check_file_name {
+            for u in &d.urls {
+                if !known_urls.insert(u) {
+                    return Err(Error::DownloadDefinition(format!(
+                        "Download URL \"{u}\" is used more than once.",
+                    )));
+                }
             }
         }
 
@@ -44,18 +46,25 @@ fn validate_downloads(
             )));
         }
 
-        let file_name = download_folder.join(&d.file_name);
+        let file_name = if let Some(output_path) = &d.output_path {
+            output_path.join(&d.file_name)
+        } else {
+            download_folder.join(&d.file_name)
+        };
+
         if d.file_name.to_string_lossy().is_empty() {
             return Err(Error::DownloadDefinition(String::from(
                 "Failed to get full download path.",
             )));
         }
 
-        if !known_download_paths.insert(&d.file_name) {
-            return Err(Error::DownloadDefinition(format!(
-                "Download file name \"{}\" is used more than once.",
-                d.file_name.to_string_lossy(),
-            )));
+        if d.check_file_name {
+            if !known_download_paths.insert(&d.file_name) {
+                return Err(Error::DownloadDefinition(format!(
+                    "Download file name \"{}\" is used more than once.",
+                    d.file_name.to_string_lossy(),
+                )));
+            }
         }
 
         let progress = if d.progress.is_none() {
@@ -68,6 +77,8 @@ fn validate_downloads(
             urls,
             file_name,
             progress: Some(progress),
+            check_file_name: false,
+            output_path: d.output_path.clone(),
             verify_callback: d.verify_callback.clone(),
         });
     }
@@ -138,6 +149,9 @@ impl Downloader {
         if to_process.is_empty() {
             return Ok(Vec::new());
         }
+        to_process
+            .iter()
+            .for_each(|d| println!("{:?}", d.file_name));
 
         let result = crate::backend::async_run(
             &mut self.client,
