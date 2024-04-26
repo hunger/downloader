@@ -149,9 +149,6 @@ impl Downloader {
         if to_process.is_empty() {
             return Ok(Vec::new());
         }
-        to_process
-            .iter()
-            .for_each(|d| println!("{:?}", d.file_name));
 
         let result = crate::backend::async_run(
             &mut self.client,
