@@ -24,7 +24,7 @@ rustls-tls = ["reqwest/rustls-tls"]
 
 [dependencies]
 futures = { version = "0.3" }
-reqwest = { version = "0.11", default-features = false }
+reqwest = { version = "0.12", default-features = false }
 rand = { version = "0.8" }
 thiserror = { version = "1.0" }
 tokio = { version = "1.23", features = [ "rt-multi-thread", "time" ] }
