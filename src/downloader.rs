@@ -115,9 +115,6 @@ impl Downloader {
             to_process,
             self.retries,
             self.parallel_requests,
-            &move || {
-                factory.join();
-            },
         ))
     }
 
@@ -144,9 +141,6 @@ impl Downloader {
             to_process,
             self.retries,
             self.parallel_requests,
-            &move || {
-                factory.join();
-            },
         )
         .await;
 
