@@ -75,7 +75,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let dl = downloader::Download::new("https://speed.hetzner.de/100MB.bin");
+    let dl = downloader::Download::new("https://ash-speed.hetzner.com/100MB.bin");
 
     #[cfg(not(feature = "tui"))]
     let dl = dl.progress(SimpleReporter::create());

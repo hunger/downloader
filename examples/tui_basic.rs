@@ -25,7 +25,7 @@ fn main() {
 
     // Download with an inferred filename
     let dl2 = downloader::Download::new(
-        "https://cdimage.debian.org/debian-cd/current/i386/iso-cd/debian-10.9.0-i386-netinst.iso",
+        "https://cdimage.debian.org/debian-cd/12.8.0/i386/iso-cd/debian-12.8.0-i386-netinst.iso",
     );
 
     let result = downloader.download(&[dl, dl2]).unwrap();
