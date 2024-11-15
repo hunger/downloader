@@ -163,7 +163,6 @@ pub(crate) fn run(
     downloads: Vec<Download>,
     retries: u16,
     parallel_requests: u16,
-    spin: &dyn Fn(),
 ) -> Vec<Result<DownloadSummary>> {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let cl = client.clone();
@@ -176,8 +175,6 @@ pub(crate) fn run(
             .await
     });
 
-    spin();
-
     rt.block_on(result).unwrap()
 }
 
@@ -186,7 +183,6 @@ pub(crate) async fn async_run(
     downloads: Vec<Download>,
     retries: u16,
     parallel_requests: u16,
-    spin: &dyn Fn(),
 ) -> Vec<Result<DownloadSummary>> {
     let cl = client.clone();
 
@@ -198,8 +194,6 @@ pub(crate) async fn async_run(
             .await
     })
     .await;
-
-    spin();
 
     result.unwrap()
 }

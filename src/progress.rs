@@ -31,9 +31,6 @@ pub trait Reporter: Send + Sync {
 pub trait Factory {
     /// Create an `Reporter`
     fn create_reporter(&self) -> crate::Progress;
-
-    /// Wait for all progresses to finish
-    fn join(&self);
 }
 
 // ----------------------------------------------------------------------
@@ -66,8 +63,6 @@ impl Factory for Noop {
     fn create_reporter(&self) -> crate::Progress {
         Self::create()
     }
-
-    fn join(&self) {}
 }
 
 // ----------------------------------------------------------------------
@@ -100,13 +95,6 @@ mod tui {
                 ),
             })
         }
-
-        /// Wait for all progresses to finish
-        fn join(&self) {
-            self.progress_group
-                .join()
-                .expect("No ui if this fails, which is OK for us");
-        }
     }
 
     struct TuiBar {
@@ -120,8 +108,9 @@ mod tui {
                 lock.set_length(t);
                 lock.set_style(indicatif::ProgressStyle::default_bar()
                 .template("[{bar:20.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta}) - {msg}")
+                .unwrap()
                 .progress_chars("#- "));
-                lock.set_message(message);
+                lock.set_message(String::from(message));
                 lock.reset_eta();
             } else {
                 lock.set_style(
@@ -137,9 +126,10 @@ mod tui {
                             "▹▹▹▹▸",
                             "▪▪▪▪▪",
                         ])
-                        .template("{spinner:.blue} {msg}"),
+                        .template("{spinner:.blue} {msg}")
+                        .unwrap()
                 );
-                lock.set_message(message)
+                lock.set_message(String::from(message))
             };
         }
 
@@ -150,7 +140,7 @@ mod tui {
 
         fn set_message(&self, message: &str) {
             let lock = self.progress_bar.lock().unwrap();
-            lock.set_message(message);
+            lock.set_message(String::from(message));
         }
 
         fn done(&self) {
