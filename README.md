@@ -14,9 +14,9 @@ machines.
 
 Callbacks to provide progress information are supported as well.
 
-## Installation
+## Installation and Usage
 
-### Cargo
+### Installation via Cargo
 
 Add the following line into your `Cargo.toml` file to make `downloader` a
 `[dependency]` of your crate:
@@ -25,6 +25,35 @@ Add the following line into your `Cargo.toml` file to make `downloader` a
 
 Alternatively you can run `cargo add downloader`. See crates.io for the latest
 version of the package.
+
+### Example
+
+```rust
+use downloader::downloader::Builder;
+use downloader::Download;
+use std::path::Path;
+use std::time::Duration;
+
+fn main() {
+    let image = Download::new("https://example.com/example.png");
+    // other downloads...
+    // image.urls.push("https://example.com/example2.png");
+
+    let mut dl = Builder::default()
+        .connect_timeout(Duration::from_secs(4))
+        .download_folder(Path::new("../res")) // or any arbitrary path
+        .parallel_requests(8)
+        .build()
+        .unwrap();
+
+    let response = dl.download(&[image]).unwrap(); // other error handling
+
+    response.iter().for_each(|v| match v {
+        Ok(v) => println!("Downloaded: {:?}", v),
+        Err(e) => println!("Error: {:?}", e),
+    })
+}
+```
 
 ### Features
 
