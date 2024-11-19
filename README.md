@@ -14,7 +14,7 @@ machines.
 
 Callbacks to provide progress information are supported as well.
 
-## Installation and Usage
+## Usage
 
 ### Installation via Cargo
 
