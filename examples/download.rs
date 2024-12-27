@@ -8,6 +8,8 @@
 #![warn(clippy::all, clippy::nursery, clippy::pedantic)]
 #![allow(clippy::non_ascii_literal)]
 
+use std::env::temp_dir;
+
 use downloader::Downloader;
 
 // Define a custom progress reporter:
@@ -70,7 +72,7 @@ impl downloader::progress::Reporter for SimpleReporter {
 
 fn main() {
     let mut downloader = Downloader::builder()
-        .download_folder(std::path::Path::new("/tmp"))
+        .download_folder(&temp_dir())
         .parallel_requests(1)
         .build()
         .unwrap();
