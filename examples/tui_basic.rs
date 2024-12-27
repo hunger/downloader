@@ -32,7 +32,7 @@ fn main() {
 
     for r in result {
         match r {
-            Err(e) => print!("Error occurred! {}", e.to_string()),
+            Err(e) => print!("Error occurred! {e}"),
             Ok(s) => print!("Success: {}", &s),
         };
     }

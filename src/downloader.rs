@@ -14,7 +14,7 @@ use crate::progress::Factory;
 fn validate_downloads(
     downloads: &[Download],
     download_folder: &std::path::Path,
-    factory: &dyn crate::progress::Factory,
+    factory: &dyn Factory,
 ) -> Result<Vec<Download>> {
     let mut known_urls = std::collections::HashSet::new();
     let mut known_download_paths = std::collections::HashSet::new();

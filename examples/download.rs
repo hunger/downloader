@@ -43,10 +43,9 @@ impl downloader::progress::Reporter for SimpleReporter {
 
     fn progress(&self, current: u64) {
         if let Some(p) = self.private.lock().unwrap().as_mut() {
-            let max_bytes = match p.max_progress {
-                Some(bytes) => format!("{:?}", bytes),
-                None => "{unknown}".to_owned(),
-            };
+            let max_bytes = p
+                .max_progress
+                .map_or_else(|| "{unknown}".to_owned(), |bytes| format!("{bytes:?}"));
             if p.last_update.elapsed().as_millis() >= 1000 {
                 println!(
                     "test file: {} of {} bytes. [{}]",
@@ -58,12 +57,11 @@ impl downloader::progress::Reporter for SimpleReporter {
     }
 
     fn set_message(&self, message: &str) {
-        println!("test file: Message changed to: {}", message);
+        println!("test file: Message changed to: {message}");
     }
 
     fn done(&self) {
-        let mut guard = self.private.lock().unwrap();
-        *guard = None;
+        _ = self.private.lock().unwrap().take();
         println!("test file: [DONE]");
     }
 }
@@ -98,7 +96,7 @@ fn main() {
 
     for r in result {
         match r {
-            Err(e) => println!("Error: {}", e.to_string()),
+            Err(e) => println!("Error: {e}"),
             Ok(s) => println!("Success: {}", &s),
         };
     }

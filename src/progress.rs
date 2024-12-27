@@ -129,7 +129,7 @@ mod tui {
                         .template("{spinner:.blue} {msg}")
                         .unwrap()
                 );
-                lock.set_message(String::from(message))
+                lock.set_message(String::from(message));
             };
         }
 
