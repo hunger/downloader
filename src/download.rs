@@ -25,9 +25,14 @@ fn file_name_from_url(url: &str) -> std::path::PathBuf {
     if url.is_empty() {
         return std::path::PathBuf::new();
     }
-    let Ok(url) = reqwest::Url::parse(url) else { return std::path::PathBuf::new() };
+    let Ok(url) = reqwest::Url::parse(url) else {
+        return std::path::PathBuf::new();
+    };
 
-    url.path_segments().map_or_else(std::path::PathBuf::new, |f| std::path::PathBuf::from(f.last().unwrap_or("")))
+    url.path_segments()
+        .map_or_else(std::path::PathBuf::new, |f| {
+            std::path::PathBuf::from(f.last().unwrap_or(""))
+        })
 }
 
 impl Download {
@@ -46,7 +51,7 @@ impl Download {
     #[must_use]
     pub fn new_mirrored(urls: &[&str]) -> Self {
         let urls: Vec<String> = urls.iter().map(|s| String::from(*s)).collect();
-        let url = urls.get(0).unwrap_or(&String::new()).clone();
+        let url = urls.first().unwrap_or(&String::new()).clone();
 
         Self {
             urls,
@@ -62,7 +67,7 @@ impl Download {
     /// Default is the file name on the server side (if available)
     #[must_use]
     pub fn file_name(mut self, path: &std::path::Path) -> Self {
-        self.file_name = path.to_owned();
+        self.file_name = path.to_path_buf();
         self
     }
 
