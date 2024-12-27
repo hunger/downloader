@@ -4,7 +4,8 @@
 [![Docs.rs](https://docs.rs/downloader/badge.svg)](https://docs.rs/downloader)
 [![CI](https://github.com/hunger/downloader/workflows/Continuous%20Integration/badge.svg)](https://github.com/hunger/downloader/actions)
 [![Coverage Status](https://coveralls.io/repos/github/hunger/downloader/badge.svg?branch=main)](https://coveralls.io/github/hunger/downloader?branch=main)
-`downloader` is a crate to help with easly downloading of files from the
+
+`downloader` is a crate to help with easily downloading of files from the
 internet. It takes a simple simple and straightforward approach using a url
 builder and fetcher.
 
@@ -63,7 +64,7 @@ fn main() {
 ## License
 
 Licensed under the GNU Lesser General Public License, Version 3.0 or later
-([LICENSE-LGPLv3](LICENSE-LGPLv3.md) or <https://www.gnu.org/licenses/lgpl.md>
+([LICENSE-LGPLv3](LICENSE-LGPLv3.md) or <https://www.gnu.org/licenses/lgpl.md>)
 
 ## Contribution
 
