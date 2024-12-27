@@ -10,11 +10,12 @@
 #![allow(clippy::non_ascii_literal)]
 
 use downloader::Downloader;
+use std::env::temp_dir;
 
 // Run example with: cargo run --example tui_basic --features tui
 fn main() {
     let mut downloader = Downloader::builder()
-        .download_folder(std::path::Path::new("/tmp"))
+        .download_folder(&temp_dir())
         .parallel_requests(1)
         .build()
         .unwrap();
